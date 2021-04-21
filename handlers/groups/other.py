@@ -4,9 +4,10 @@ import re
 from aiogram import types
 from aiogram.dispatcher.filters import Command
 
-from loader import dp
+from loader import dp, bot
 from scripts.exams_counter import how_long_until_exams
 from utils.misc.throttling import rate_limit
+from data.config import NSGUBAN_CHAT_ID
 
 
 # @rate_limit(120, "gay")
@@ -39,7 +40,6 @@ async def commie(message: types.Message):
     parsed = command_parse.match(message.text)
     target = parsed.group(2)
     percentage = randint(0, 100)
-    print(message.chat.id)
     # если пользователь не ввёл цель, он сам становится ею
     if not target:
         target = message.from_user.get_mention()
@@ -50,4 +50,8 @@ async def commie(message: types.Message):
 
 @dp.message_handler(Command('exams', prefixes='!/'))
 async def exams(message: types.Message):
-    await how_long_until_exams(now=True)
+    text = how_long_until_exams()
+    if message.chat.type == 'private':
+        await message.answer(text=text, disable_notification=False)
+    else:
+        await bot.send_message(chat_id=NSGUBAN_CHAT_ID, text=text, disable_notification=True)
